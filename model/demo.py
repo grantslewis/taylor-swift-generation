@@ -4,6 +4,7 @@ import torch
 import os
 os.environ["CUDA_VISIBLE_DEVICES"]="3"
 
+
 if torch.cuda.is_available():
     print("cuda")
     avail = torch.cuda.device_count()
