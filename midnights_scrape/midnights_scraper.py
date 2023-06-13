@@ -1,35 +1,50 @@
 from bs4 import BeautifulSoup, NavigableString
 from urllib.request import Request, urlopen
 import pandas as pd
+import re
 
-SOURCE = "https://www.lyricsondemand.com/t/taylorswiftlyrics/midnightsthetildawneditionalbumlyrics.html"
-DESTINATION = "midnights.csv"
+SOURCE = ["https://www.lyricsondemand.com/t/taylorswiftlyrics/midnightsthetildawneditionalbumlyrics.html",
+          "https://www.lyricsondemand.com/t/taylorswiftlyrics/fearlesstaylorsversionalbumlyrics.html",
+          "https://www.lyricsondemand.com/t/taylorswiftlyrics/youallovermetaylorsversionfromthevaultlyrics.html",
+          "https://www.lyricsondemand.com/t/taylorswiftlyrics/mrperfectlyfinetaylorsversionfromthevaultlyrics.html",
+          "https://www.lyricsondemand.com/t/taylorswiftlyrics/wewerehappytaylorsversionfromthevaultlyrics.html",
+          "https://www.lyricsondemand.com/t/taylorswiftlyrics/thatswhentaylorsversionfromthevaultlyrics.html",
+          "https://www.lyricsondemand.com/t/taylorswiftlyrics/dontyoutaylorsversionfromthevaultlyrics.html",
+          "https://www.lyricsondemand.com/t/taylorswiftlyrics/byebyebabytaylorsversionfromthevaultlyrics.html",
+          "https://www.lyricsondemand.com/t/taylorswiftlyrics/redtaylorsversionalbumlyrics.html"]
+ALBUMS = ["Midnights", "Fearless", "Fearless", "Fearless", "Fearless", "Fearless", "Fearless", "Fearless", "Red"]
+DESTINATION = "../data/midnights_fearless_red_2.csv"
 
-def get_lyrics(source):
+def get_lyrics(source, album_name=None, starting_track=0):
     data = None
-    with urlopen(Request(url=SOURCE, headers={'User-Agent': 'Mozilla/5.0'})) as fp: # open
+    with urlopen(Request(url=source, headers={'User-Agent': 'Mozilla/5.0'})) as fp: # open
         data_bytes = fp.read()
         data = data_bytes.decode("utf8") # decode
 
     soup = BeautifulSoup(data, "html.parser") # parse
-
+    
+    try:
+        possible_track_name = soup.find("div", id="ldata")
+        possible_track_name = possible_track_name.find("a", class_="SngLnk")
+        possible_track_name = re.findall(r"(.+) Lyrics", possible_track_name.text)[0]
+        print(possible_track_name)
+    except:
+        possible_track_name = None
+        # print("None")
+        
     sel = soup.find("div", class_="lcontent") # select
 
-    songs = dict()
-
-    # album_name = []
     track_title = []
     track_n = []
     lyrics = []
     lines = []
     section = []
 
-    curr_track_name = None
-    curr_track_n = 0
+    # curr_track_name = None if possible_track_name is None else possible_track_name.text
+    curr_track_name = possible_track_name
+    curr_track_n = starting_track
     curr_line = 0
     curr_section = 0
-    # is_new_track = False
-
 
     for line in sel:
         # print()
@@ -38,18 +53,12 @@ def get_lyrics(source):
             curr_track_name = line.text
             curr_line = 0
             curr_section = 0
-            # is_new_track = True
-            
-            
-            # if current_song is not None:
-            #     songs[current_song] = {'lyric':song_lines, 'line'
-            # song_name = line.text
-            # song_lines = []
-            # song_section = []
         elif isinstance(line, NavigableString) and line.name is None:
-            # print(line.name, line.text)
-            # and line.name is None:
             if len(line.text) > 1:
+                if curr_track_n == starting_track: # If track name comes from "possible_track_name", need to increment track number
+                    # print(curr_track_n, starting_track, curr_track_name, line.text)
+                    curr_track_n += 1
+                
                 curr_line += 1
                 # print(line.text, curr_line)
                 lyrics.append(line.text.strip())
@@ -59,49 +68,28 @@ def get_lyrics(source):
                 section.append(curr_section)
             else:
                 curr_section += 1
-        # elif line.name == "br":
-        #     print("br", line.text)
-        
-        
-        # elif line.name == "br" and len(line.text) > 0:
-        #     curr_line += 1
-        #     track_title.append(curr_track_name)
-        #     track_n.append(curr_track_n)
-        #     lyric.append(line.text)
-        #     line.append(curr_line)
-        #     section.append(curr_section)
-        # elif line.name == "br" and len(line.text) == 0:
-        #     curr_section += 1
 
     df = pd.DataFrame({'track_title':track_title, 'track_n':track_n, 'lyric':lyrics, 'line':lines, 'section':section})
-
-    print(df.head(20))
+    df['album_name'] = album_name
     return df
 
-
-df.to_csv("midnights.csv", index=False)
-        # if is_new_track:
-        #     is_new_track = False
-        #     track_n.append(track_n[-1] + 1)
-        # # line += 1
-        
-        # tran
-        
-        
-        
-        
-        
-    #     print(type(line), line.string, line.text)
-    # # if line.startswith("<a"): # and line.class_ == "bold":
-    #     # line_bs = BeautifulSoup(line, "html.parser")
-    #     print(line.text)
-    #     songs[line.text] = dict()
-
-# for title in sel.find_all(["a", "b"], class_="bold"):
-#     print(title)
+if __name__ == "__main__":
     
-    
-# soup.find_all()
+    df_all = pd.DataFrame()
+    previous_track_n = 0
+    previous_album_name = None
+    for source, album in zip(SOURCE, ALBUMS):
+        if previous_album_name != album:
+            previous_track_n = 0
+        
+        print(source, album)
+        df = get_lyrics(source, album, previous_track_n)
+        df_all = pd.concat([df_all, df], ignore_index=True)
+        
+        previous_track_n = df['track_n'].max()
+        print(previous_track_n)
+        previous_album_name = album
+    print(df_all.head(20))
+    print(df_all.tail(20))
 
-
-
+    df_all.to_csv(DESTINATION, index=False)
