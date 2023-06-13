@@ -3,15 +3,7 @@ from urllib.request import Request, urlopen
 import pandas as pd
 import re
 
-SOURCE = ["https://www.lyricsondemand.com/t/taylorswiftlyrics/midnightsthetildawneditionalbumlyrics.html",
-          "https://www.lyricsondemand.com/t/taylorswiftlyrics/fearlesstaylorsversionalbumlyrics.html",
-          "https://www.lyricsondemand.com/t/taylorswiftlyrics/youallovermetaylorsversionfromthevaultlyrics.html",
-          "https://www.lyricsondemand.com/t/taylorswiftlyrics/mrperfectlyfinetaylorsversionfromthevaultlyrics.html",
-          "https://www.lyricsondemand.com/t/taylorswiftlyrics/wewerehappytaylorsversionfromthevaultlyrics.html",
-          "https://www.lyricsondemand.com/t/taylorswiftlyrics/thatswhentaylorsversionfromthevaultlyrics.html",
-          "https://www.lyricsondemand.com/t/taylorswiftlyrics/dontyoutaylorsversionfromthevaultlyrics.html",
-          "https://www.lyricsondemand.com/t/taylorswiftlyrics/byebyebabytaylorsversionfromthevaultlyrics.html",
-          "https://www.lyricsondemand.com/t/taylorswiftlyrics/redtaylorsversionalbumlyrics.html"]
+SOURCE = []
 ALBUMS = ["Midnights", "Fearless", "Fearless", "Fearless", "Fearless", "Fearless", "Fearless", "Fearless", "Red"]
 DESTINATION = "../data/midnights_fearless_red_2.csv"
 
