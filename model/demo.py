@@ -1,8 +1,8 @@
 import time
 from transformers import AutoModelForCausalLM, AutoTokenizer
-
+import torch
 import os
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="3"
 
 if torch.cuda.is_available():
     print("cuda")
